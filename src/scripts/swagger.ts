@@ -289,6 +289,11 @@ class SwaggerInterface {
       name = getIdentifierFromOperatorId(inter.operationId);
     }
 
+    name = transformCamelCase(name);
+    if (name === 'index') {
+      name = 'indexApi';
+    }
+
     const responseSchema = _.get(inter, 'responses.200.schema', {}) as Schema;
     const response = Schema.parseSwaggerSchema2StandardDataType(responseSchema, defNames, [], compileTempateKeyword);
 
