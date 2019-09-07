@@ -180,9 +180,9 @@ export class StandardDataType extends Contextable {
     this.templateIndex = index;
   }
 
-  getDefNameWithTemplate() {}
+  getDefNameWithTemplate() { }
 
-  generateCodeWithTemplate() {}
+  generateCodeWithTemplate() { }
 
   getDefName(originName) {
     let name = this.typeName;
@@ -270,7 +270,7 @@ export class Property extends Contextable {
   name: string;
   required: boolean;
 
-  in: 'query' | 'body' | 'path';
+  in: 'query' | 'body' | 'path' | 'header';
 
   setContext(context) {
     super.setContext(context);
@@ -347,9 +347,9 @@ export class Interface extends Contextable {
     return `
       class ${className} {
         ${this.parameters
-          .filter(param => param.in !== 'body')
-          .map(param => param.toPropertyCode(true))
-          .join('')}
+        .filter(param => param.in !== 'body' && param.in !== 'header')
+        .map(param => param.toPropertyCode(true))
+        .join('')}
       }
     `;
   }
