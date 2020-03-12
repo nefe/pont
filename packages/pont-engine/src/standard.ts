@@ -220,7 +220,7 @@ export class StandardDataType extends Contextable {
     }
 
     if (this.typeProperties.length) {
-      const interfaceCode = `{${this.typeProperties.map(property => property.toPropertyCode())}
+      const interfaceCode = `{${this.typeProperties.map(property => property.toPropertyCode()).join('')}
       }`;
 
       if (name) {
