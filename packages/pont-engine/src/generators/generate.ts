@@ -17,14 +17,15 @@ import {
   Surrounding,
   getFileName,
   getTemplatesDirFile,
-  judgeTemplatesDirFileExists
+  judgeTemplatesDirFileExists,
+  DataSourceConfig
 } from '../utils';
 import { info } from '../debugLog';
 import { templateRegistion } from '../templates';
 
 export class FileStructures {
   constructor(
-    private generators: CodeGenerator[],
+    public generators: CodeGenerator[],
     private usingMultipleOrigins: boolean,
     private surrounding = Surrounding.typeScript,
     private baseDir = 'src/service',
@@ -561,9 +562,28 @@ export class FilesManager {
 
     const newLockContent = this.fileStructures.getLockContent();
 
-    if (lockContent !== newLockContent) {
-      this.created = true;
-      await fs.writeFile(lockFilePath, newLockContent);
+    // 多origin时，保存lock数据不被覆盖
+    if (this.fileStructures.generators.length > 1) {
+      try {
+        const oldLockContentJson = JSON.parse(lockContent) as DataSourceConfig[];
+        const newLockContentJson = JSON.parse(newLockContent) as DataSourceConfig[];
+        oldLockContentJson?.forEach(content => {
+          if (newLockContentJson.findIndex(newContent => newContent.name === content.name)) {
+            newLockContentJson.push(content);
+          }
+        });
+
+        if (lockContent !== newLockContent) {
+          this.created = true;
+          await fs.writeFile(lockFilePath, JSON.stringify(newLockContentJson, null, 2));
+        }
+      } catch (error) {}
+    } else {
+      // 单origin时，不做改动
+      if (lockContent !== newLockContent) {
+        this.created = true;
+        await fs.writeFile(lockFilePath, newLockContent);
+      }
     }
   }
 
