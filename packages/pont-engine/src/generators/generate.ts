@@ -132,16 +132,30 @@ export class FileStructures {
         ? this.getMultipleOriginsFileStructures()
         : this.getOriginFileStructures(this.generators[0]);
 
-    // js环境时，默认为新用户，生成pontCore文件
     if (this.surrounding === Surrounding.javaScript) {
       if (!fs.existsSync(this.baseDir + '/pontCore.js')) {
         result['pontCore.js'] = getTemplatesDirFile('pontCore.js', 'pontCore/');
         result['pontCore.d.ts'] = getTemplatesDirFile('pontCore.d.ts', 'pontCore/');
       }
 
-      if (this.templateType && this.checkHasTemplateFetch()) {
+      if (this.templateType && this.checkHasTemplateFetch() && !fs.existsSync(this.baseDir + `/${this.templateType}.js`)) {
         result[`${this.templateType}.js`] = getTemplatesDirFile(`${this.templateType}.js`, 'pontCore/');
         result[`${this.templateType}.d.ts`] = getTemplatesDirFile(`${this.templateType}.d.ts`, 'pontCore/');
+      }
+    } else if (this.surrounding === Surrounding.typeScript) {
+      if (!fs.existsSync(this.baseDir + '/pontCore.ts')) {
+        result['pontCore.ts'] = getTemplatesDirFile('pontCore.ts', 'pontCore/');
+      }
+
+      if (this.templateType && this.checkHasTemplateFetch()
+        && !fs.existsSync(this.baseDir + `/${this.templateType}.ts`)
+        && !fs.existsSync(this.baseDir + `/${this.templateType}.tsx`)) {
+        try {
+          result[`${this.templateType}.ts`] = getTemplatesDirFile(`${this.templateType}.ts`, 'pontCore/');
+        } catch (e) {}
+        try {
+          result[`${this.templateType}.tsx`] = getTemplatesDirFile(`${this.templateType}.tsx`, 'pontCore/');
+        } catch (e) {}
       }
     }
 
@@ -153,7 +167,9 @@ export class FileStructures {
 
     if (
       templateTypesWithOutFetch.includes(this.templateType) &&
-      judgeTemplatesDirFileExists(`${this.templateType}.js`, 'pontCore/')
+      (judgeTemplatesDirFileExists(`${this.templateType}.js` , 'pontCore/')
+        || judgeTemplatesDirFileExists(`${this.templateType}.ts`, 'pontCore/')
+        || judgeTemplatesDirFileExists(`${this.templateType}.tsx`, 'pontCore/'))
     ) {
       return true;
     }
